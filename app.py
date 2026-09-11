@@ -29,15 +29,6 @@ MODEL_OPTIONS = [
 with st.sidebar:
     st.header("⚙️ Settings")
 
-    # Prefer a key from Streamlit secrets (for deployment); fall back to manual entry
-    default_key = st.secrets.get("GROQ_API_KEY", "") if hasattr(st, "secrets") else ""
-    api_key = st.text_input(
-        "Groq API Key",
-        value=default_key,
-        type="password",
-        help="Get a free key at console.groq.com. On Streamlit Cloud, set this in Secrets instead.",
-    )
-
     model = st.selectbox("Model", MODEL_OPTIONS, index=0)
     temperature = st.slider("Temperature", 0.0, 1.0, 0.7, 0.1)
 
@@ -60,8 +51,13 @@ if "messages" not in st.session_state:
 st.title("🩺 Virtual Doctor")
 st.caption("Powered by Groq API — fast LLM inference")
 
+api_key = st.secrets.get("GROQ_API_KEY") if hasattr(st, "secrets") else None
+
 if not api_key:
-    st.warning("Please enter your Groq API key in the sidebar to start chatting.")
+    st.error(
+        "GROQ_API_KEY not found. Add it to `.streamlit/secrets.toml` locally, "
+        "or in your app's Settings → Secrets on Streamlit Cloud."
+    )
     st.stop()
 
 client = Groq(api_key=api_key)
